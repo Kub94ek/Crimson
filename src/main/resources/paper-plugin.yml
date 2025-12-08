@@ -1,0 +1,12 @@
+name: Crimson
+version: '1.0-SNAPSHOT'
+main: me.kub94ek.crimson.Crimson
+api-version: '1.21.10'
+load: STARTUP
+authors: [ Kub94ek ]
+dependencies:
+  server:
+    KubLib:
+      load: BEFORE
+      required: true
+      join-classpath: true
