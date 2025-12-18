@@ -9,31 +9,40 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
 import me.kub94ek.crimson.command.crimson.CrimsonBanhammerCommand
 import me.kub94ek.crimson.command.crimson.CrimsonGiveCommand
 import me.kub94ek.crimson.command.crimson.CrimsonHelpCommand
+import me.kub94ek.crimson.command.crimson.CrimsonMenuCommand
 import me.kub94ek.crimson.listeners.BanHammerListener
+import me.kub94ek.crimson.listeners.RaceListener
+import me.kub94ek.crimson.races.Race
+import me.kub94ek.crimson.races.setRaceType
 import me.kub94ek.kubLib.KubLib
 import me.kub94ek.kubLib.cooldown.CooldownCommand
+import me.kub94ek.kubLib.gui.ChestMenu
+import me.kub94ek.kubLib.gui.MenuItem
 import me.kub94ek.kubLib.items.CustomDrops
 import me.kub94ek.kubLib.items.ItemRegistry
-import me.kub94ek.kubLib.items.effects.ArmorSetEffect
-import me.kub94ek.kubLib.items.effects.SlotEffect
 import net.kyori.adventure.text.Component.*
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.Style.style
 import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.text.format.TextDecoration
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey.fromString
-import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
-import org.bukkit.inventory.EquipmentSlot
-import org.bukkit.inventory.RecipeChoice
-import org.bukkit.inventory.ShapedRecipe
-import org.bukkit.inventory.SmithingTransformRecipe
+import org.bukkit.inventory.*
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.potion.PotionEffect
-import org.bukkit.potion.PotionEffectType
+import java.io.File
+import java.util.UUID
 
 class Crimson : JavaPlugin() {
+
+    private val selectedRaces = mutableMapOf<UUID, String>()
+
+    override fun onLoad() {
+        instance = this
+    }
 
     override fun onEnable() {
         logger.info("Starting...")
@@ -59,6 +68,7 @@ class Crimson : JavaPlugin() {
         registerItems(kubLib)
         registerRecipes(kubLib)
         registerCustomDrops(kubLib.itemRegistry)
+        registerMenus(kubLib)
         registerCommands()
 
     }
@@ -70,14 +80,14 @@ class Crimson : JavaPlugin() {
     private fun registerListeners(kubLib: KubLib) {
         val pluginManager = server.pluginManager
         pluginManager.registerEvents(BanHammerListener(kubLib.itemRegistry), this)
-
+        pluginManager.registerEvents(RaceListener(kubLib), this)
     }
 
     private fun registerItems(kubLib: KubLib) {
         val itemRegistry = kubLib.itemRegistry
 
 
-        val echoCrystal = itemRegistry.createItem(
+        val echoCrystal = ItemRegistry.createItem(
             ECHO_CRYSTAL, Material.QUARTZ,
             translatable(translationString(ECHO_CRYSTAL), "Echo Crystal", NamedTextColor.DARK_AQUA)
         )
@@ -86,7 +96,7 @@ class Crimson : JavaPlugin() {
         }
         itemRegistry.registerItem(ECHO_CRYSTAL, echoCrystal)
 
-        val echoIngot = itemRegistry.createItem(
+        val echoIngot = ItemRegistry.createItem(
             ECHO_INGOT, Material.NETHERITE_INGOT,
             translatable(translationString(ECHO_INGOT), "Echo Ingot", NamedTextColor.DARK_AQUA)
         )
@@ -95,7 +105,7 @@ class Crimson : JavaPlugin() {
         }
         itemRegistry.registerItem(ECHO_INGOT, echoIngot)
 
-        val echoUpgrade = itemRegistry.createItem(
+        val echoUpgrade = ItemRegistry.createItem(
             ECHO_UPGRADE, Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE,
             translatable(translationString(ECHO_UPGRADE), "Echo Upgrade", NamedTextColor.DARK_AQUA)
         )
@@ -110,110 +120,99 @@ class Crimson : JavaPlugin() {
         )
 
         registerArmor(kubLib)
+        registerRaceItems(kubLib)
     }
 
     private fun registerArmor(kubLib: KubLib) {
         val itemRegistry = kubLib.itemRegistry
 
-        val echoHelmet = itemRegistry.createItem(
-            ECHO_HELMET, Material.NETHERITE_HELMET,
-            translatable(translationString(ECHO_HELMET), "Echo Helmet", NamedTextColor.DARK_AQUA)
+        val echoHelmet = ItemRegistry.createArmor(
+            ECHO_HELMET, "crimson:echo", Material.NETHERITE_HELMET,
+            translatable(translationString(ECHO_HELMET), "Echo Helmet", NamedTextColor.DARK_AQUA),
+            EquipmentSlot.HEAD
         )
-        echoHelmet.editMeta {
-            val equippable = it.equippable
-            equippable.model = fromString("crimson:echo")
-            equippable.slot = EquipmentSlot.HEAD
-            it.setEquippable(equippable)
-        }
         itemRegistry.registerItem(ECHO_HELMET, echoHelmet)
 
-        val echoChestplate = itemRegistry.createItem(
-            ECHO_CHESTPLATE, Material.NETHERITE_CHESTPLATE,
-            translatable(translationString(ECHO_CHESTPLATE), "Echo Chestplate", NamedTextColor.DARK_AQUA)
+        val echoChestplate = ItemRegistry.createArmor(
+            ECHO_CHESTPLATE, "crimson:echo", Material.NETHERITE_CHESTPLATE,
+            translatable(translationString(ECHO_CHESTPLATE), "Echo Chestplate", NamedTextColor.DARK_AQUA),
+            EquipmentSlot.CHEST
         )
-        echoChestplate.editMeta {
-            val equippable = it.equippable
-            equippable.model = fromString("crimson:echo")
-            equippable.slot = EquipmentSlot.CHEST
-            it.setEquippable(equippable)
-        }
         itemRegistry.registerItem(ECHO_CHESTPLATE, echoChestplate)
 
-        val echoLeggings = itemRegistry.createItem(
-            ECHO_LEGGINGS, Material.NETHERITE_LEGGINGS,
-            translatable(translationString(ECHO_LEGGINGS), "Echo Leggings", NamedTextColor.DARK_AQUA)
+        val echoLeggings = ItemRegistry.createArmor(
+            ECHO_LEGGINGS, "crimson:echo", Material.NETHERITE_LEGGINGS,
+            translatable(translationString(ECHO_LEGGINGS), "Echo Leggings", NamedTextColor.DARK_AQUA),
+            EquipmentSlot.LEGS
         )
-        echoLeggings.editMeta {
-            val equippable = it.equippable
-            equippable.model = fromString("crimson:echo")
-            equippable.slot = EquipmentSlot.LEGS
-            it.setEquippable(equippable)
-        }
         itemRegistry.registerItem(ECHO_LEGGINGS, echoLeggings)
 
-        val echoBoots = itemRegistry.createItem(
-            ECHO_BOOTS, Material.NETHERITE_BOOTS,
-            translatable(translationString(ECHO_BOOTS), "Echo Boots", NamedTextColor.DARK_AQUA)
+        val echoBoots = ItemRegistry.createArmor(
+            ECHO_BOOTS, "crimson:echo", Material.NETHERITE_BOOTS,
+            translatable(translationString(ECHO_BOOTS), "Echo Boots", NamedTextColor.DARK_AQUA),
+            EquipmentSlot.FEET
         )
-        echoBoots.editMeta {
-            val equippable = it.equippable
-            equippable.model = fromString("crimson:echo")
-            equippable.slot = EquipmentSlot.FEET
-            it.setEquippable(equippable)
-            it.addEnchant(Enchantment.MENDING, 1, false)
-        }
         itemRegistry.registerItem(ECHO_BOOTS, echoBoots)
 
 
-        val atlantisHelmet = itemRegistry.createItem(
-            ATLANTIS_HELMET, Material.DIAMOND_HELMET,
-            translatable(translationString(ATLANTIS_HELMET), "Atlantis Helmet", PRISMARINE)
+        val atlantisHelmet = ItemRegistry.createArmor(
+            ATLANTIS_HELMET, "crimson:atlantis", Material.DIAMOND_HELMET,
+            translatable(translationString(ATLANTIS_HELMET), "Atlantis Helmet", PRISMARINE),
+            EquipmentSlot.HEAD
         )
-        atlantisHelmet.editMeta {
-            val equippable = it.equippable
-            equippable.model = fromString("crimson:atlantis")
-            equippable.slot = EquipmentSlot.HEAD
-            it.setEquippable(equippable)
-        }
         itemRegistry.registerItem(ATLANTIS_HELMET, atlantisHelmet)
 
-        val atlantisChestplate = itemRegistry.createItem(
-            ATLANTIS_CHESTPLATE, Material.DIAMOND_CHESTPLATE,
-            translatable(translationString(ATLANTIS_CHESTPLATE), "Atlantis Chestplate", PRISMARINE)
+        val atlantisChestplate = ItemRegistry.createArmor(
+            ATLANTIS_CHESTPLATE, "crimson:atlantis", Material.DIAMOND_CHESTPLATE,
+            translatable(translationString(ATLANTIS_CHESTPLATE), "Atlantis Chestplate", PRISMARINE),
+            EquipmentSlot.CHEST
         )
-        atlantisChestplate.editMeta {
-            val equippable = it.equippable
-            equippable.model = fromString("crimson:atlantis")
-            equippable.slot = EquipmentSlot.CHEST
-            it.setEquippable(equippable)
-        }
         itemRegistry.registerItem(ATLANTIS_CHESTPLATE, atlantisChestplate)
 
-        val atlantisLeggings = itemRegistry.createItem(
-            ATLANTIS_LEGGINGS, Material.DIAMOND_LEGGINGS,
-            translatable(translationString(ATLANTIS_LEGGINGS), "Atlantis Leggings", PRISMARINE)
+        val atlantisLeggings = ItemRegistry.createArmor(
+            ATLANTIS_LEGGINGS, "crimson:atlantis", Material.DIAMOND_LEGGINGS,
+            translatable(translationString(ATLANTIS_LEGGINGS), "Atlantis Leggings", PRISMARINE),
+            EquipmentSlot.LEGS
         )
-        atlantisLeggings.editMeta {
-            val equippable = it.equippable
-            equippable.model = fromString("crimson:atlantis")
-            equippable.slot = EquipmentSlot.LEGS
-            it.setEquippable(equippable)
-        }
         itemRegistry.registerItem(ATLANTIS_LEGGINGS, atlantisLeggings)
 
-        val atlantisBoots = itemRegistry.createItem(
-            ATLANTIS_BOOTS, Material.DIAMOND_BOOTS,
-            translatable(translationString(ATLANTIS_BOOTS), "Atlantis Boots", PRISMARINE)
+        val atlantisBoots = ItemRegistry.createArmor(
+            ATLANTIS_BOOTS, "crimson:atlantis", Material.DIAMOND_BOOTS,
+            translatable(translationString(ATLANTIS_BOOTS), "Atlantis Boots", PRISMARINE),
+            EquipmentSlot.FEET
         )
-        atlantisBoots.editMeta {
-            val equippable = it.equippable
-            equippable.model = fromString("crimson:atlantis")
-            equippable.slot = EquipmentSlot.FEET
-            it.setEquippable(equippable)
-        }
         itemRegistry.registerItem(ATLANTIS_BOOTS, atlantisBoots)
 
-        itemRegistry.registerItemEffect(object : ArmorSetEffect(ATLANTIS_BOOTS, ATLANTIS_LEGGINGS, ATLANTIS_CHESTPLATE, ATLANTIS_HELMET, 20) {
+
+        val enderHelmet = ItemRegistry.createArmor(
+            ENDER_HELMET, "crimson:ender", Material.NETHERITE_HELMET,
+            translatable(translationString(ENDER_HELMET), "Ender Helmet", ENDER),
+            EquipmentSlot.HEAD
+        )
+        itemRegistry.registerItem(ENDER_HELMET, enderHelmet)
+
+        val enderChestplate = ItemRegistry.createArmor(
+            ENDER_CHESTPLATE, "crimson:ender", Material.NETHERITE_CHESTPLATE,
+            translatable(translationString(ENDER_CHESTPLATE), "Ender Chestplate", ENDER),
+            EquipmentSlot.CHEST
+        )
+        itemRegistry.registerItem(ENDER_CHESTPLATE, enderChestplate)
+
+        val enderLeggings = ItemRegistry.createArmor(
+            ENDER_LEGGINGS, "crimson:ender", Material.NETHERITE_LEGGINGS,
+            translatable(translationString(ENDER_LEGGINGS), "Ender Leggings", ENDER),
+            EquipmentSlot.LEGS
+        )
+        itemRegistry.registerItem(ENDER_LEGGINGS, enderLeggings)
+
+        val enderBoots = ItemRegistry.createArmor(
+            ENDER_BOOTS, "crimson:ender", Material.NETHERITE_BOOTS,
+            translatable(translationString(ENDER_BOOTS), "Ender Boots", ENDER),
+            EquipmentSlot.FEET
+        )
+        itemRegistry.registerItem(ENDER_BOOTS, enderBoots)
+
+        /*itemRegistry.registerItemEffect(object : ArmorSetEffect(ATLANTIS_BOOTS, ATLANTIS_LEGGINGS, ATLANTIS_CHESTPLATE, ATLANTIS_HELMET, 20) {
             override fun applyEffect(player: Player) {
                 player.addPotionEffect(PotionEffect(PotionEffectType.CONDUIT_POWER, 40, 0, true, false, true))
             }
@@ -223,8 +222,25 @@ class Crimson : JavaPlugin() {
             override fun applyEffect(player: Player) {
                 player.addPotionEffect(PotionEffect(PotionEffectType.DOLPHINS_GRACE, 40, 0, true, false, true))
             }
-        })
+        })*/
 
+    }
+
+    private fun registerRaceItems(kubLib: KubLib) {
+        val itemRegistry = kubLib.itemRegistry
+
+        itemRegistry.registerItem("crimson:race_selector_human", Material.PLAYER_HEAD,
+            Race.HUMAN.displayName.style(style(NamedTextColor.WHITE)),
+            listOf(
+                translatable("menu.crimson.race_select.human.desc")
+            ), null
+        )
+        itemRegistry.registerItem("crimson:race_selector_test", Material.SKELETON_SKULL,
+            Race.TEST.displayName.style(style(NamedTextColor.WHITE)),
+            listOf(
+                translatable("menu.crimson.race_select.test.desc")
+            ), null
+        )
     }
 
     private fun registerRecipes(kubLib: KubLib) {
@@ -336,6 +352,66 @@ class Crimson : JavaPlugin() {
         )
     }
 
+    private fun registerMenus(kubLib: KubLib) {
+        val itemRegistry = kubLib.itemRegistry
+        val menuRegistry = kubLib.menuRegistry
+
+        val raceSelectMenu = ChestMenu(
+            translatable("menu.crimson.race_select.title", "Select a race", NamedTextColor.GOLD),
+            "crimson:race_select_menu",
+            "         ", " 1234567 ", "         "
+        )
+        raceSelectMenu.setKey('1', raceSelectorMenuItem("human"))
+        raceSelectMenu.setKey('2', raceSelectorMenuItem("test"))
+        menuRegistry.registerMenu(raceSelectMenu)
+
+        
+
+        val raceConfirmMenu = ChestMenu(
+            translatable("menu.crimson.race_confirm.title", "Confirm your selection", NamedTextColor.GOLD),
+            "crimson:race_confirm_menu",
+            "         ",
+            "         ",
+            "    r    ",
+            "   y n   ",
+            "         ",
+            "         "
+        )
+
+        raceConfirmMenu.prepareKey('r', MenuItem(ItemStack.empty()) {}) {
+            itemRegistry.getItemStack("crimson:race_selector_${selectedRaces[it.uniqueId]}")!!
+        }
+
+        raceConfirmMenu.setKey('y', MenuItem(ItemRegistry.createItem(
+            Material.LIME_CONCRETE, translatable("menu.crimson.confirm", "Confirm", NamedTextColor.GREEN, TextDecoration.BOLD),
+            listOf(translatable("menu.crimson.race_confirm.confirm.desc", "This action is permanent!", NamedTextColor.DARK_RED))
+        )) {
+            val player = it.event.whoClicked as Player
+            val race = Race.valueOf(selectedRaces[player.uniqueId]!!.uppercase())
+            setRaceType(player, race)
+            player.sendMessage(
+                translatable("message.race.select", "You have selected the %s race!", NamedTextColor.YELLOW, TextDecoration.BOLD)
+                    .arguments(race.displayName.style(style(NamedTextColor.WHITE, TextDecoration.UNDERLINED, TextDecoration.BOLD)))
+            )
+            Bukkit.getScheduler().runTask(this, Runnable {
+                player.closeInventory()
+            })
+        })
+
+        raceConfirmMenu.setKey('n', MenuItem(ItemRegistry.createItem(
+            Material.RED_CONCRETE, translatable("menu.crimson.cancel", "Cancel", NamedTextColor.DARK_RED, TextDecoration.BOLD)
+        )) {
+            selectedRaces.remove(it.event.whoClicked.uniqueId)
+            Bukkit.getScheduler().runTask(this, Runnable {
+                it.event.whoClicked.closeInventory()
+                menuRegistry.openMenu("crimson:race_select_menu", it.event.whoClicked as Player)
+            })
+        })
+
+        menuRegistry.registerMenu(raceConfirmMenu)
+
+    }
+
     private fun registerCommands() {
         lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS) {
             val registrar = it.registrar()
@@ -344,6 +420,7 @@ class Crimson : JavaPlugin() {
                 .then(CrimsonGiveCommand().create())
                 .then(CrimsonBanhammerCommand().create())
                 .then(CooldownCommand("crimson").createCommand())
+                .then(CrimsonMenuCommand().create())
                 .then(Commands.literal("reload")
                     .executes { context ->
                         reloadConfig()
@@ -382,8 +459,26 @@ class Crimson : JavaPlugin() {
     }
 
 
+    private fun raceSelectorMenuItem(race: String): MenuItem {
+        val kubLib = KubLib.getInstance()
+
+        return MenuItem(
+            kubLib.itemRegistry.getItemStack("crimson:race_selector_$race")!!
+        ) {
+            selectedRaces[it.event.whoClicked.uniqueId] = race
+            Bukkit.getScheduler().runTask(this, Runnable {
+                it.event.whoClicked.closeInventory()
+                kubLib.menuRegistry.openMenu("crimson:race_confirm_menu", it.event.whoClicked as Player)
+            })
+        }
+    }
+
     private fun translationString(itemId: String): String {
         return "item.${itemId.replace(':', '.')}"
+    }
+
+    fun savePluginConfig() {
+        config.save(File(dataFolder, "config.yml"))
     }
 
     companion object {
@@ -394,6 +489,7 @@ class Crimson : JavaPlugin() {
         }
 
         val PRISMARINE = TextColor.color(0x0e9e69)
+        val ENDER = TextColor.color(0x430af0)
 
         const val ECHO_CRYSTAL = "crimson:echo_crystal"
         const val ECHO_INGOT = "crimson:echo_ingot"
@@ -410,6 +506,11 @@ class Crimson : JavaPlugin() {
         const val ATLANTIS_CHESTPLATE = "crimson:atlantis_chestplate"
         const val ATLANTIS_LEGGINGS = "crimson:atlantis_leggings"
         const val ATLANTIS_BOOTS = "crimson:atlantis_boots"
+
+        const val ENDER_HELMET = "crimson:ender_helmet"
+        const val ENDER_CHESTPLATE = "crimson:ender_chestplate"
+        const val ENDER_LEGGINGS = "crimson:ender_leggings"
+        const val ENDER_BOOTS = "crimson:ender_boots"
 
     }
 }

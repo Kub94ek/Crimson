@@ -21,7 +21,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    compileOnly("me.kub94ek:kub-lib:2.0")
+    compileOnly("me.kub94ek:kub-lib:2.1")
     compileOnly("de.tr7zw:item-nbt-api-plugin:2.15.3")
 }
 

@@ -20,15 +20,3 @@ fun customItemsSuggestion(namespace: String = "crimson"): SuggestionProvider<Com
         builder.buildFuture()
     }
 }
-
-/*fun customFragmentTypesSuggestion(): SuggestionProvider<CommandSourceStack> {
-    return SuggestionProvider { _, builder ->
-        val types: List<String> = FragmentTypes.fragmentTypes.keys.toList()
-        types.stream()
-            .filter {
-                it.lowercase().startsWith(builder.remainingLowerCase)
-            }
-            .forEach(builder::suggest)
-        builder.buildFuture()
-    }
-}*/
