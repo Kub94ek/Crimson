@@ -4,6 +4,7 @@ package me.kub94ek.crimson.command
 
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import io.papermc.paper.command.brigadier.CommandSourceStack
+import me.kub94ek.crimson.races.Race
 import me.kub94ek.kubLib.KubLib
 
 
@@ -17,6 +18,16 @@ fun customItemsSuggestion(namespace: String = "crimson"): SuggestionProvider<Com
                     || it.substring(it.indexOf(':')+1, it.length).startsWith(builder.remainingLowerCase)
             }
             .forEach(builder::suggest)
+        builder.buildFuture()
+    }
+}
+
+fun customRaceTypesSuggestion(): SuggestionProvider<CommandSourceStack> {
+    return SuggestionProvider { _, builder ->
+        Race.entries.map { it.toString().lowercase() }
+            .stream().filter { it.startsWith(builder.remainingLowerCase) }
+            .forEach(builder::suggest)
+
         builder.buildFuture()
     }
 }

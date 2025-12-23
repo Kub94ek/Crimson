@@ -48,8 +48,7 @@ fun setRaceType(player: Player, type: Race) {
                 if (attribute.getModifier(it.modifier.key) != null) {
                     attribute.removeModifier(it.modifier.key)
                 }
-            }
-            if (it is PotionAbility) {
+            } else if (it is PotionAbility) {
                 player.removePotionEffect(it.potionEffect.type)
             }
         }
@@ -101,8 +100,7 @@ fun setRaceLevel(player: Player, level: Int) {
             if (attribute.getModifier(it.modifier.key) != null) {
                 attribute.removeModifier(it.modifier.key)
             }
-        }
-        if (it is PotionAbility) {
+        } else if (it is PotionAbility) {
             player.removePotionEffect(it.potionEffect.type)
         }
     }
@@ -166,13 +164,6 @@ fun startPotionRunnable(player: Player) {
     val effects = mutableListOf<PotionEffect>()
 
     getRaceType(player)!!.abilities[getRaceLevel(player)]!!.forEach {
-        if (it is AttributeAbility) {
-            val attribute = player.getAttribute(it.attribute)!!
-            if (attribute.getModifier(it.modifier.key) != null) {
-                attribute.removeModifier(it.modifier.key)
-            }
-            attribute.addModifier(it.modifier)
-        }
         if (it is PotionAbility) {
             effects.add(it.potionEffect)
         }
@@ -190,7 +181,7 @@ fun createAbilityLore(
 ): List<Component> {
     val lore = mutableListOf(
         translatable("gui.race.ability.base", "Ability: ", style(GOLD, ITALIC.withState(false)))
-            .append(name),
+            .append(name.style(style(YELLOW))),
         description.style(style(GRAY, ITALIC.withState(false)))
     )
 

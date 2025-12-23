@@ -13,6 +13,9 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/") {
         name = "papermc-repo"
     }
+    maven("https://jitpack.io") {
+        name = "jitpack"
+    }
     maven("https://repo.codemc.io/repository/maven-public/") {
         name = "CodeMC"
     }
@@ -23,6 +26,7 @@ dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     compileOnly("me.kub94ek:kub-lib:2.1")
     compileOnly("de.tr7zw:item-nbt-api-plugin:2.15.3")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 }
 
 tasks {
