@@ -51,6 +51,7 @@ class Crimson : JavaPlugin() {
     )
 
     var economy: Economy? = null
+    val recipesToUnlock = mutableListOf<String>()
 
     override fun onLoad() {
         instance = this
@@ -257,7 +258,7 @@ class Crimson : JavaPlugin() {
         itemRegistry.registerItem("crimson:race_selector_human", Material.PLAYER_HEAD,
             Race.HUMAN.displayName,
             listOf(
-                text("Spawns in a jungle", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
+                text("Spawns in a forest", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
                 text(""),
                 text("No buffs, no debuffs", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
             ), null
@@ -277,7 +278,7 @@ class Crimson : JavaPlugin() {
         itemRegistry.registerItem("crimson:race_selector_dwarf", Material.IRON_PICKAXE,
             Race.DWARF.displayName,
             listOf(
-                text("Spawns in a cave", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
+                text("Spawns in a mountain cave", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
                 text(""),
                 text("1.35 blocks tall", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
                 text("Faster mining (scales with levels)", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
@@ -308,7 +309,7 @@ class Crimson : JavaPlugin() {
         itemRegistry.registerItem("crimson:race_selector_ender", Material.ENDER_PEARL,
             Race.ENDER.displayName,
             listOf(
-                text("Spawns ", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))), // TODO: ENDER SPAWN LOCATION
+                text("Spawns in a pale garden", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
                 text(""),
                 text("+0/1/2 ❤", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
                 text("Chorus fruit gives more hunger and saturation", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),

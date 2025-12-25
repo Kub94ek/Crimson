@@ -7,6 +7,7 @@ import me.kub94ek.crimson.races.abilities.PotionAbility
 import me.kub94ek.kubLib.KubLib
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.Tag
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
@@ -39,6 +40,7 @@ class RaceListener(private val kubLib: KubLib) : Listener {
         if (player.world.name.startsWith("world")) {
             startPotionRunnable(player)
         } else {
+            potionRunnables[player.uniqueId]?.cancel()
             potionRunnables.remove(player.uniqueId)
             removeEffects = true
         }
@@ -70,6 +72,9 @@ class RaceListener(private val kubLib: KubLib) : Listener {
                 selectingPlayers.add(player.uniqueId)
                 player.isInvulnerable = true
             }, 40)
+            player.discoverRecipes(
+                Crimson.getInstance().recipesToUnlock.map { NamespacedKey.fromString(it)!! }
+            )
             return
         }
 

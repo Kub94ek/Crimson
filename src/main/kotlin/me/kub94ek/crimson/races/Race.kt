@@ -31,7 +31,7 @@ enum class Race(
             3 to listOf(text("No buffs, no debuffs", style(GRAY, ITALIC.withState(false))))
         ),
         mapOf(1 to listOf(), 2 to listOf(), 3 to listOf()),
-        { Location(Bukkit.getWorld("world"), -69.0, 98.0, -16.0) }
+        { Location(Bukkit.getWorld("world"), -7.5, 66.0, 173.5) }
     ),
     GOLEM(
         translatable("menu.crimson.race_select.golem", "Golem", style(WHITE, ITALIC.withState(false))),
@@ -93,7 +93,7 @@ enum class Race(
                         1.5, AttributeModifier.Operation.ADD_SCALAR))
             )
         ),
-        { Location(Bukkit.getWorld("world"), 0.0, 100.0, 0.0) }
+        { Location(Bukkit.getWorld("world"), 208.5, 72.0, 201.5) }
     ),
     DWARF(
         translatable("menu.crimson.race_select.dwarf", "Dwarf", style(GOLD, ITALIC.withState(false))),
@@ -149,7 +149,7 @@ enum class Race(
                         -2.0, AttributeModifier.Operation.ADD_NUMBER))
             )
         ),
-        { Location(Bukkit.getWorld("world"), 0.0, 100.0, 0.0) }
+        { Location(Bukkit.getWorld("world"), 431.5, 122.0, 454.5) }
     ),
     DROWNED(
         translatable("menu.crimson.race_select.drowned", "Drowned", style(AQUA, ITALIC.withState(false))),
@@ -186,7 +186,7 @@ enum class Race(
                         2.0, AttributeModifier.Operation.ADD_SCALAR))
             )
         ),
-        { Location(Bukkit.getWorld("world"), 0.0, 100.0, 0.0) }
+        { Location(Bukkit.getWorld("world"), -106.5, 64.0, -10.5) }
     ),
     DEMON(
         translatable("menu.crimson.race_select.demon", "Demon", style(DARK_RED, ITALIC.withState(false))),
@@ -241,7 +241,7 @@ enum class Race(
                         -1.0, AttributeModifier.Operation.ADD_SCALAR))
             )
         ),
-        { Location(Bukkit.getWorld("world"), 0.0, 100.0, 0.0) }
+        { Location(Bukkit.getWorld("world"), 88.5, 71.0, 11.5) }
     ),
     ENDER(
         translatable("menu.crimson.race_select.ender", "Ender", style(DARK_PURPLE, ITALIC.withState(false))),
@@ -286,7 +286,7 @@ enum class Race(
                         4.0, AttributeModifier.Operation.ADD_NUMBER))
             )
         ),
-        { Location(Bukkit.getWorld("world"), 0.0, 100.0, 0.0) }
+        { Location(Bukkit.getWorld("world"), -1678.5, 104.0, 1906.5) }
     );
 
     init {
