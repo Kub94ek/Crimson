@@ -14,3 +14,7 @@ dependencies:
       load: BEFORE
       required: true
       join-classpath: true
+    LoginSecurity:
+      load: BEFORE
+      required: true
+      join-classpath: true

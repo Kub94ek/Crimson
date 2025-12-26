@@ -19,6 +19,9 @@ repositories {
     maven("https://repo.codemc.io/repository/maven-public/") {
         name = "CodeMC"
     }
+    flatDir {
+        dirs("libs")
+    }
 }
 
 dependencies {
@@ -27,6 +30,7 @@ dependencies {
     compileOnly("me.kub94ek:kub-lib:2.1")
     compileOnly("de.tr7zw:item-nbt-api-plugin:2.15.3")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
+    compileOnly("com.lenis0012.bukkit:loginsecurity:3.3.1")
 }
 
 tasks {

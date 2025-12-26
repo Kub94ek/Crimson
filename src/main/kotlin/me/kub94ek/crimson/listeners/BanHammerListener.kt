@@ -22,6 +22,7 @@ class BanHammerListener(private val itemRegistry: ItemRegistry) : Listener {
         if (killer !is Player) return
 
         val item = killer.inventory.itemInMainHand
+        if (item.isEmpty) return
         if (itemRegistry.getItemId(item) != "crimson:ban_hammer") return
 
         var command: String? = null

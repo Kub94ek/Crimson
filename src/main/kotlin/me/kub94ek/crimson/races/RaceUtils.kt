@@ -132,7 +132,9 @@ fun setRaceXp(player: Player, xp: Int) {
 fun setRaceXp(name: String, xp: Int) {
     val current = getRaceXp(name)
     if (current == xp) return
-    Crimson.getInstance().config.set("races.$name.xp", xp)
+    val crimson = Crimson.getInstance()
+    crimson.config.set("races.$name.xp", xp)
+    crimson.savePluginConfig()
 
     val currentLevel = getRaceLevel(name)
     if (currentLevel == 3) return

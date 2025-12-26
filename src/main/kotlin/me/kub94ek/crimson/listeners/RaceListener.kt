@@ -1,5 +1,7 @@
 package me.kub94ek.crimson.listeners
 
+import com.lenis0012.bukkit.loginsecurity.events.AuthActionEvent
+import com.lenis0012.bukkit.loginsecurity.session.AuthActionType
 import me.kub94ek.crimson.Crimson
 import me.kub94ek.crimson.races.*
 import me.kub94ek.crimson.races.abilities.AttributeAbility
@@ -67,11 +69,6 @@ class RaceListener(private val kubLib: KubLib) : Listener {
         val race = getRaceType(player)
 
         if (race == null) {
-            Bukkit.getScheduler().runTaskLater(Crimson.getInstance(), Runnable {
-                kubLib.menuRegistry.openMenu("crimson:race_select_menu", player)
-                selectingPlayers.add(player.uniqueId)
-                player.isInvulnerable = true
-            }, 40)
             player.discoverRecipes(
                 Crimson.getInstance().recipesToUnlock.map { NamespacedKey.fromString(it)!! }
             )
@@ -82,6 +79,22 @@ class RaceListener(private val kubLib: KubLib) : Listener {
     }
 
     @EventHandler
+    fun onAuthAction(event: AuthActionEvent) {
+        if (event.type != AuthActionType.LOGIN) return
+
+        val player = event.player
+
+        if (getRaceType(player) != null) return
+
+        Bukkit.getScheduler().runTask(Crimson.getInstance(), Runnable {
+            kubLib.menuRegistry.openMenu("crimson:race_select_menu", player)
+            selectingPlayers.add(player.uniqueId)
+            player.isInvulnerable = true
+        })
+
+    }
+
+    @EventHandler
     fun onInventoryClose(event: InventoryCloseEvent) {
         val player = event.player as Player
 
@@ -89,7 +102,9 @@ class RaceListener(private val kubLib: KubLib) : Listener {
 
         if (event.reason == InventoryCloseEvent.Reason.PLAYER) {
             Bukkit.getScheduler().runTask(Crimson.getInstance(), Runnable {
-                kubLib.menuRegistry.openMenu(kubLib.menuRegistry.getMenuId(event.inventory.getItem(0)!!)!!, player)
+                val item = event.inventory.getItem(0) ?: return@Runnable
+                val menuId = kubLib.menuRegistry.getMenuId(item) ?: return@Runnable
+                kubLib.menuRegistry.openMenu(menuId, player)
             })
         }
     }
@@ -134,6 +149,7 @@ class RaceListener(private val kubLib: KubLib) : Listener {
 
         if (getRaceType(player) != Race.ENDER || getRaceLevel(player) == 1) return
         if (event.isCancelled) return
+        if (!player.world.name.startsWith("world")) return
 
         player.foodLevel += 4
         player.saturation += 4.5f
@@ -147,6 +163,7 @@ class RaceListener(private val kubLib: KubLib) : Listener {
 
         val race = getRaceType(player)
         if (race != Race.ENDER && race != Race.DEMON) return
+        if (!player.world.name.startsWith("world")) return
 
         event.damage += 1000
     }
@@ -163,6 +180,7 @@ class RaceListener(private val kubLib: KubLib) : Listener {
             && reason != EntityExhaustionEvent.ExhaustionReason.WALK) return
 
         if (getRaceType(player) != Race.DROWNED) return
+        if (!player.world.name.startsWith("world")) return
 
         event.exhaustion *= 2
     }
