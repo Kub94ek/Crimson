@@ -34,7 +34,7 @@ class RaceListener(private val kubLib: KubLib) : Listener {
     fun onWorldChange(event: PlayerChangedWorldEvent) {
         val player = event.player
 
-        val race = getRaceType(player)!!
+        val race = getRaceType(player) ?: return
         val level = getRaceLevel(player)
 
         var removeEffects = false
@@ -68,29 +68,26 @@ class RaceListener(private val kubLib: KubLib) : Listener {
 
         val race = getRaceType(player)
 
-        if (race == null) {
-            player.discoverRecipes(
-                Crimson.getInstance().recipesToUnlock.map { NamespacedKey.fromString(it)!! }
-            )
-            return
-        }
+        player.discoverRecipes(
+            Crimson.getInstance().recipesToUnlock.map { NamespacedKey.fromString(it)!! }
+        )
 
+        if (race == null) return
         startPotionRunnable(player)
     }
 
     @EventHandler
     fun onAuthAction(event: AuthActionEvent) {
-        if (event.type != AuthActionType.LOGIN) return
+        if (event.type != AuthActionType.LOGIN && event.type != AuthActionType.REGISTER) return
 
         val player = event.player
 
         if (getRaceType(player) != null) return
 
-        Bukkit.getScheduler().runTask(Crimson.getInstance(), Runnable {
+        Bukkit.getScheduler().runTaskLater(Crimson.getInstance(), Runnable {
             kubLib.menuRegistry.openMenu("crimson:race_select_menu", player)
             selectingPlayers.add(player.uniqueId)
-            player.isInvulnerable = true
-        })
+        }, 100)
 
     }
 

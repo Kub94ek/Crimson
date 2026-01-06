@@ -9,6 +9,7 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
 import me.kub94ek.crimson.command.crimson.*
 import me.kub94ek.crimson.command.race.*
 import me.kub94ek.crimson.listeners.BanHammerListener
+import me.kub94ek.crimson.listeners.EnderArmorListener
 import me.kub94ek.crimson.listeners.RaceListener
 import me.kub94ek.crimson.listeners.selectingPlayers
 import me.kub94ek.crimson.races.Race
@@ -21,6 +22,7 @@ import me.kub94ek.kubLib.gui.ChestMenu
 import me.kub94ek.kubLib.gui.MenuItem
 import me.kub94ek.kubLib.items.CustomDrops
 import me.kub94ek.kubLib.items.ItemRegistry
+import me.kub94ek.kubLib.items.effects.ArmorSetEffect
 import net.kyori.adventure.text.Component.*
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style.style
@@ -35,6 +37,8 @@ import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
 import org.bukkit.inventory.*
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 import java.io.File
 import java.util.UUID
 
@@ -90,6 +94,9 @@ class Crimson : JavaPlugin() {
         registerMenus(kubLib)
         registerCommands()
 
+        kubLib.cooldownManager.registerCooldownType("crimson:ender_teleport",
+            text("You can use your Ender Armor Teleport ability again."), 30)
+
     }
 
     private fun setupEconomy(): Boolean {
@@ -107,6 +114,7 @@ class Crimson : JavaPlugin() {
         val pluginManager = server.pluginManager
         pluginManager.registerEvents(BanHammerListener(kubLib.itemRegistry), this)
         pluginManager.registerEvents(RaceListener(kubLib), this)
+        pluginManager.registerEvents(EnderArmorListener(), this)
     }
 
     private fun registerItems(kubLib: KubLib) {
@@ -152,7 +160,7 @@ class Crimson : JavaPlugin() {
     private fun registerArmor(kubLib: KubLib) {
         val itemRegistry = kubLib.itemRegistry
 
-        val echoHelmet = ItemRegistry.createArmor(
+        /*val echoHelmet = ItemRegistry.createArmor(
             ECHO_HELMET, "crimson:echo", Material.NETHERITE_HELMET,
             translatable(translationString(ECHO_HELMET), "Echo Helmet", NamedTextColor.DARK_AQUA),
             EquipmentSlot.HEAD
@@ -207,36 +215,128 @@ class Crimson : JavaPlugin() {
             translatable(translationString(ATLANTIS_BOOTS), "Atlantis Boots", PRISMARINE),
             EquipmentSlot.FEET
         )
-        itemRegistry.registerItem(ATLANTIS_BOOTS, atlantisBoots)
+        itemRegistry.registerItem(ATLANTIS_BOOTS, atlantisBoots)*/
 
 
         val enderHelmet = ItemRegistry.createArmor(
-            ENDER_HELMET, "crimson:ender", Material.NETHERITE_HELMET,
+            ENDER_HELMET, "crimson:ender", Material.DIAMOND_HELMET,
             translatable(translationString(ENDER_HELMET), "Ender Helmet", ENDER),
             EquipmentSlot.HEAD
         )
+        enderHelmet.editMeta {
+            it.lore(listOf(
+                text("Set Bonus: Shift right-click with a sword", style(ENDER, TextDecoration.ITALIC.withState(false))),
+                text("to teleport up to 6 blocks ahead", style(ENDER, TextDecoration.ITALIC.withState(false))),
+                text("Cooldown: 30s", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
+            ))
+        }
         itemRegistry.registerItem(ENDER_HELMET, enderHelmet)
+        itemRegistry.registerItem("${ENDER_HELMET}_netherite", enderHelmet.withType(Material.NETHERITE_HELMET))
 
         val enderChestplate = ItemRegistry.createArmor(
-            ENDER_CHESTPLATE, "crimson:ender", Material.NETHERITE_CHESTPLATE,
+            ENDER_CHESTPLATE, "crimson:ender", Material.DIAMOND_CHESTPLATE,
             translatable(translationString(ENDER_CHESTPLATE), "Ender Chestplate", ENDER),
             EquipmentSlot.CHEST
         )
+        enderChestplate.editMeta {
+            it.lore(listOf(
+                text("Can be used as an elytra", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false))),
+                text(""),
+                text("Set Bonus: Shift right-click with a sword", style(ENDER, TextDecoration.ITALIC.withState(false))),
+                text("to teleport up to 6 blocks ahead", style(ENDER, TextDecoration.ITALIC.withState(false))),
+                text("Cooldown: 30s", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
+            ))
+            it.isGlider = true
+        }
         itemRegistry.registerItem(ENDER_CHESTPLATE, enderChestplate)
+        itemRegistry.registerItem("${ENDER_CHESTPLATE}_netherite", enderChestplate.withType(Material.NETHERITE_CHESTPLATE))
 
         val enderLeggings = ItemRegistry.createArmor(
-            ENDER_LEGGINGS, "crimson:ender", Material.NETHERITE_LEGGINGS,
+            ENDER_LEGGINGS, "crimson:ender", Material.DIAMOND_LEGGINGS,
             translatable(translationString(ENDER_LEGGINGS), "Ender Leggings", ENDER),
             EquipmentSlot.LEGS
         )
+        enderLeggings.editMeta {
+            it.lore(listOf(
+                text("Set Bonus: Shift right-click with a sword", style(ENDER, TextDecoration.ITALIC.withState(false))),
+                text("to teleport up to 6 blocks ahead", style(ENDER, TextDecoration.ITALIC.withState(false))),
+                text("Cooldown: 30s", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
+            ))
+        }
         itemRegistry.registerItem(ENDER_LEGGINGS, enderLeggings)
+        itemRegistry.registerItem("${ENDER_LEGGINGS}_netherite", enderLeggings.withType(Material.NETHERITE_LEGGINGS))
 
         val enderBoots = ItemRegistry.createArmor(
-            ENDER_BOOTS, "crimson:ender", Material.NETHERITE_BOOTS,
+            ENDER_BOOTS, "crimson:ender", Material.DIAMOND_BOOTS,
             translatable(translationString(ENDER_BOOTS), "Ender Boots", ENDER),
             EquipmentSlot.FEET
         )
+        enderBoots.editMeta {
+            it.lore(listOf(
+                text("Set Bonus: Shift right-click with a sword", style(ENDER, TextDecoration.ITALIC.withState(false))),
+                text("to teleport up to 6 blocks ahead", style(ENDER, TextDecoration.ITALIC.withState(false))),
+                text("Cooldown: 30s", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
+            ))
+        }
         itemRegistry.registerItem(ENDER_BOOTS, enderBoots)
+        itemRegistry.registerItem("${ENDER_BOOTS}_netherite", enderBoots.withType(Material.NETHERITE_BOOTS))
+
+
+        val dwarfHelmet = ItemRegistry.createArmor(
+            DWARF_HELMET, "crimson:dwarf", Material.DIAMOND_HELMET,
+            translatable(translationString(DWARF_HELMET), "Dwarf Helmet", NamedTextColor.GOLD),
+            EquipmentSlot.HEAD
+        )
+        dwarfHelmet.editMeta {
+            it.lore(listOf(
+                text("Set bonus: Haste II", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false)))
+            ))
+        }
+        itemRegistry.registerItem(DWARF_HELMET, dwarfHelmet)
+
+        val dwarfChestplate = ItemRegistry.createArmor(
+            DWARF_CHESTPLATE, "crimson:dwarf", Material.DIAMOND_CHESTPLATE,
+            translatable(translationString(DWARF_CHESTPLATE), "Dwarf Chestplate", NamedTextColor.GOLD),
+            EquipmentSlot.CHEST
+        )
+        dwarfChestplate.editMeta {
+            it.lore(listOf(
+                text("Set bonus: Haste II", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false)))
+            ))
+        }
+        itemRegistry.registerItem(DWARF_CHESTPLATE, dwarfChestplate)
+
+        val dwarfLeggings = ItemRegistry.createArmor(
+            DWARF_LEGGINGS, "crimson:dwarf", Material.DIAMOND_LEGGINGS,
+            translatable(translationString(DWARF_LEGGINGS), "Dwarf Leggings", NamedTextColor.GOLD),
+            EquipmentSlot.LEGS
+        )
+        dwarfLeggings.editMeta {
+            it.lore(listOf(
+                text("Set bonus: Haste II", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false)))
+            ))
+        }
+        itemRegistry.registerItem(DWARF_LEGGINGS, dwarfLeggings)
+
+        val dwarfBoots = ItemRegistry.createArmor(
+            DWARF_BOOTS, "crimson:dwarf", Material.DIAMOND_BOOTS,
+            translatable(translationString(DWARF_BOOTS), "Dwarf Boots", NamedTextColor.GOLD),
+            EquipmentSlot.FEET
+        )
+        dwarfBoots.editMeta {
+            it.lore(listOf(
+                text("Set bonus: Haste II", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false)))
+            ))
+        }
+        itemRegistry.registerItem(DWARF_BOOTS, dwarfBoots)
+
+        itemRegistry.registerItemEffect(
+            object : ArmorSetEffect(DWARF_BOOTS, DWARF_LEGGINGS, DWARF_CHESTPLATE, DWARF_HELMET, 20) {
+                override fun applyEffect(player: Player) {
+                    player.addPotionEffect(PotionEffect(PotionEffectType.HASTE, 40, 1, true, false, true))
+                }
+            }
+        )
 
         /*itemRegistry.registerItemEffect(object : ArmorSetEffect(ATLANTIS_BOOTS, ATLANTIS_LEGGINGS, ATLANTIS_CHESTPLATE, ATLANTIS_HELMET, 20) {
             override fun applyEffect(player: Player) {
@@ -338,6 +438,7 @@ class Crimson : JavaPlugin() {
         echoIngotRecipe.setIngredient('C', itemRegistry.getItemStack(ECHO_CRYSTAL)!!)
         echoIngotRecipe.setIngredient('I', Material.NETHERITE_INGOT)
         recipeRegistry.registerRecipe(echoIngotRecipe)
+        recipesToUnlock.add(ECHO_INGOT)
 
         val echoUpgradeDupeRecipe = ShapedRecipe(
             fromString(ECHO_UPGRADE)!!,
@@ -352,9 +453,10 @@ class Crimson : JavaPlugin() {
         echoUpgradeDupeRecipe.setIngredient('U', itemRegistry.getItemStack(ECHO_UPGRADE)!!)
         echoUpgradeDupeRecipe.setIngredient('S', Material.SCULK)
         recipeRegistry.registerRecipe(echoUpgradeDupeRecipe)
+        recipesToUnlock.add(ECHO_UPGRADE)
 
 
-        recipeRegistry.registerRecipe(SmithingTransformRecipe(
+        /*recipeRegistry.registerRecipe(SmithingTransformRecipe(
             fromString(ECHO_HELMET)!!,
             itemRegistry.getItemStack(ECHO_HELMET)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
@@ -412,8 +514,140 @@ class Crimson : JavaPlugin() {
         )
         atlantisChestplateRecipe.setIngredient('H', Material.HEART_OF_THE_SEA)
         atlantisChestplateRecipe.setIngredient('A', itemRegistry.getItemStack(PRISMARINE_ALLOY)!!)
-        recipeRegistry.registerRecipe(atlantisChestplateRecipe)
+        recipeRegistry.registerRecipe(atlantisChestplateRecipe)*/
 
+        val dwarfHelmetRecipe = ShapedRecipe(
+            fromString(DWARF_HELMET)!!,
+            itemRegistry.getItemStack(DWARF_HELMET)!!
+        )
+        dwarfHelmetRecipe.shape(
+            "GRG",
+            "TAT",
+            "GRG"
+        )
+        dwarfHelmetRecipe.setIngredient('G', Material.GOLD_INGOT)
+        dwarfHelmetRecipe.setIngredient('R', Material.REDSTONE)
+        dwarfHelmetRecipe.setIngredient('T', Material.TORCH)
+        dwarfHelmetRecipe.setIngredient('A', Material.DIAMOND_HELMET)
+        recipeRegistry.registerRecipe(dwarfHelmetRecipe)
+
+        val dwarfChestplateRecipe = ShapedRecipe(
+            fromString(DWARF_CHESTPLATE)!!,
+            itemRegistry.getItemStack(DWARF_CHESTPLATE)!!
+        )
+        dwarfChestplateRecipe.shape(
+            "GCG",
+            "DAD",
+            "GDG"
+        )
+        dwarfChestplateRecipe.setIngredient('G', Material.GOLD_INGOT)
+        dwarfChestplateRecipe.setIngredient('C', Material.CLOCK)
+        dwarfChestplateRecipe.setIngredient('D', Material.DIAMOND)
+        dwarfChestplateRecipe.setIngredient('A', Material.DIAMOND_CHESTPLATE)
+        recipeRegistry.registerRecipe(dwarfChestplateRecipe)
+
+        val dwarfLeggingsRecipe = ShapedRecipe(
+            fromString(DWARF_LEGGINGS)!!,
+            itemRegistry.getItemStack(DWARF_LEGGINGS)!!
+        )
+        dwarfLeggingsRecipe.shape(
+            "RDR",
+            "IAG",
+            "RDR"
+        )
+        dwarfLeggingsRecipe.setIngredient('R', Material.REDSTONE)
+        dwarfLeggingsRecipe.setIngredient('D', Material.DIAMOND)
+        dwarfLeggingsRecipe.setIngredient('I', Material.IRON_PICKAXE)
+        dwarfLeggingsRecipe.setIngredient('A', Material.DIAMOND_LEGGINGS)
+        dwarfLeggingsRecipe.setIngredient('G', Material.GOLDEN_PICKAXE)
+        recipeRegistry.registerRecipe(dwarfLeggingsRecipe)
+
+        val dwarfBootsRecipe = ShapedRecipe(
+            fromString(DWARF_BOOTS)!!,
+            itemRegistry.getItemStack(DWARF_BOOTS)!!
+        )
+        dwarfBootsRecipe.shape(
+            "IGI",
+            "CAC",
+            "GIG"
+        )
+        dwarfBootsRecipe.setIngredient('I', Material.IRON_INGOT)
+        dwarfBootsRecipe.setIngredient('G', Material.GOLD_INGOT)
+        dwarfBootsRecipe.setIngredient('C', Material.IRON_CHAIN)
+        dwarfBootsRecipe.setIngredient('A', Material.DIAMOND_BOOTS)
+        recipeRegistry.registerRecipe(dwarfBootsRecipe)
+
+        recipesToUnlock.add(DWARF_HELMET)
+        recipesToUnlock.add(DWARF_CHESTPLATE)
+        recipesToUnlock.add(DWARF_LEGGINGS)
+        recipesToUnlock.add(DWARF_BOOTS)
+
+
+        val enderHelmet = ShapedRecipe(
+            fromString(ENDER_HELMET)!!,
+            itemRegistry.getItemStack(ENDER_HELMET)!!
+        )
+        enderHelmet.shape(
+            "SHS",
+            "EAE",
+            "SPS"
+        )
+        enderHelmet.setIngredient('S', Material.END_STONE)
+        enderHelmet.setIngredient('H', Material.DRAGON_HEAD)
+        enderHelmet.setIngredient('E', Material.ENDER_EYE)
+        enderHelmet.setIngredient('A', Material.DIAMOND_HELMET)
+        enderHelmet.setIngredient('P', Material.ENDER_PEARL)
+        recipeRegistry.registerRecipe(enderHelmet)
+
+        val enderChestplate = ShapedRecipe(
+            fromString(ENDER_CHESTPLATE)!!,
+            itemRegistry.getItemStack(ENDER_CHESTPLATE)!!
+        )
+        enderChestplate.shape(
+            "DED",
+            "YAY",
+            "SSS"
+        )
+        enderChestplate.setIngredient('D', Material.DIAMOND)
+        enderChestplate.setIngredient('E', Material.ELYTRA)
+        enderChestplate.setIngredient('Y', Material.ENDER_EYE)
+        enderChestplate.setIngredient('A', Material.DIAMOND_CHESTPLATE)
+        enderChestplate.setIngredient('S', Material.END_STONE)
+        recipeRegistry.registerRecipe(enderChestplate)
+
+        val enderLeggings = ShapedRecipe(
+            fromString(ENDER_LEGGINGS)!!,
+            itemRegistry.getItemStack(ENDER_LEGGINGS)!!
+        )
+        enderLeggings.shape(
+            "FEF",
+            "CAC",
+            "FEF"
+        )
+        enderLeggings.setIngredient('F', Material.CHORUS_FRUIT)
+        enderLeggings.setIngredient('E', Material.END_STONE)
+        enderLeggings.setIngredient('C', Material.END_CRYSTAL)
+        enderLeggings.setIngredient('A', Material.DIAMOND_LEGGINGS)
+        recipeRegistry.registerRecipe(enderLeggings)
+
+        val enderBoots = ShapedRecipe(
+            fromString(ENDER_BOOTS)!!,
+            itemRegistry.getItemStack(ENDER_BOOTS)!!
+        )
+        enderBoots.shape(
+            "PDP",
+            "DAD",
+            "PDP"
+        )
+        enderBoots.setIngredient('P', Material.ENDER_PEARL)
+        enderBoots.setIngredient('D', Material.DIAMOND)
+        enderBoots.setIngredient('A', Material.DIAMOND_BOOTS)
+        recipeRegistry.registerRecipe(enderBoots)
+
+        recipesToUnlock.add(ENDER_HELMET)
+        recipesToUnlock.add(ENDER_CHESTPLATE)
+        recipesToUnlock.add(ENDER_LEGGINGS)
+        recipesToUnlock.add(ENDER_BOOTS)
     }
 
     private fun registerCustomDrops(itemRegistry: ItemRegistry) {
@@ -524,7 +758,7 @@ class Crimson : JavaPlugin() {
         lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS) {
             val registrar = it.registrar()
             val crimsonCommand = Commands.literal("crimson")
-                .then(CrimsonHelpCommand().create())
+                //.then(CrimsonHelpCommand().create())
                 .then(CrimsonGiveCommand().create())
                 .then(CrimsonBanhammerCommand().create())
                 .then(CooldownCommand("crimson").createCommand())
@@ -607,7 +841,7 @@ class Crimson : JavaPlugin() {
         }
 
         val PRISMARINE = TextColor.color(0x0e9e69)
-        val ENDER = TextColor.color(0x430af0)
+        val ENDER = TextColor.color(0xaf00f5)
 
         const val ECHO_CRYSTAL = "crimson:echo_crystal"
         const val ECHO_INGOT = "crimson:echo_ingot"
@@ -629,6 +863,11 @@ class Crimson : JavaPlugin() {
         const val ENDER_CHESTPLATE = "crimson:ender_chestplate"
         const val ENDER_LEGGINGS = "crimson:ender_leggings"
         const val ENDER_BOOTS = "crimson:ender_boots"
+
+        const val DWARF_HELMET = "crimson:dwarf_helmet"
+        const val DWARF_CHESTPLATE = "crimson:dwarf_chestplate"
+        const val DWARF_LEGGINGS = "crimson:dwarf_leggings"
+        const val DWARF_BOOTS = "crimson:dwarf_boots"
 
     }
 }
