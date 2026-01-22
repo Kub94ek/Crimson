@@ -6,12 +6,11 @@ import io.papermc.paper.command.brigadier.Commands
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
+import io.papermc.paper.registry.RegistryAccess
+import io.papermc.paper.registry.RegistryKey
 import me.kub94ek.crimson.command.crimson.*
 import me.kub94ek.crimson.command.race.*
-import me.kub94ek.crimson.listeners.BanHammerListener
-import me.kub94ek.crimson.listeners.EnderArmorListener
-import me.kub94ek.crimson.listeners.RaceListener
-import me.kub94ek.crimson.listeners.selectingPlayers
+import me.kub94ek.crimson.listeners.*
 import me.kub94ek.crimson.races.Race
 import me.kub94ek.crimson.races.getRaceLevel
 import me.kub94ek.crimson.races.getRaceType
@@ -36,6 +35,7 @@ import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
 import org.bukkit.inventory.*
+import org.bukkit.inventory.meta.EnchantmentStorageMeta
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
@@ -115,6 +115,8 @@ class Crimson : JavaPlugin() {
         pluginManager.registerEvents(BanHammerListener(kubLib.itemRegistry), this)
         pluginManager.registerEvents(RaceListener(kubLib), this)
         pluginManager.registerEvents(EnderArmorListener(), this)
+        pluginManager.registerEvents(NetherEventListener(), this)
+        pluginManager.registerEvents(WitherArmorListener(), this)
     }
 
     private fun registerItems(kubLib: KubLib) {
@@ -152,6 +154,42 @@ class Crimson : JavaPlugin() {
             PRISMARINE_ALLOY, Material.PRISMARINE_SHARD,
             translatable(translationString(PRISMARINE_ALLOY), "Prismarine Alloy", PRISMARINE)
         )
+
+        val crackedWitherHelmet = ItemRegistry.createItem(
+            CRACKED_WITHER_HELMET, Material.IRON_NUGGET,
+            translatable(translationString(CRACKED_WITHER_HELMET), "Cracked Wither Helmet", NamedTextColor.DARK_RED),
+            listOf(
+                text("Used to craft wither armor", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
+            )
+        )
+        itemRegistry.registerItem(CRACKED_WITHER_HELMET, crackedWitherHelmet)
+
+        val crackedWitherChestplate = ItemRegistry.createItem(
+            CRACKED_WITHER_CHESTPLATE, Material.IRON_NUGGET,
+            translatable(translationString(CRACKED_WITHER_CHESTPLATE), "Cracked Wither Chestplate", NamedTextColor.DARK_RED),
+            listOf(
+                text("Used to craft wither armor", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
+            )
+        )
+        itemRegistry.registerItem(CRACKED_WITHER_CHESTPLATE, crackedWitherChestplate)
+
+        val crackedWitherLeggings = ItemRegistry.createItem(
+            CRACKED_WITHER_LEGGINGS, Material.IRON_NUGGET,
+            translatable(translationString(CRACKED_WITHER_LEGGINGS), "Cracked Wither Leggings", NamedTextColor.DARK_RED),
+            listOf(
+                text("Used to craft wither armor", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
+            )
+        )
+        itemRegistry.registerItem(CRACKED_WITHER_LEGGINGS, crackedWitherLeggings)
+
+        val crackedWitherBoots = ItemRegistry.createItem(
+            CRACKED_WITHER_BOOTS, Material.IRON_NUGGET,
+            translatable(translationString(CRACKED_WITHER_BOOTS), "Cracked Wither Boots", NamedTextColor.DARK_RED),
+            listOf(
+                text("Used to craft wither armor", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
+            )
+        )
+        itemRegistry.registerItem(CRACKED_WITHER_BOOTS, crackedWitherBoots)
 
         registerArmor(kubLib)
         registerRaceItems(kubLib)
@@ -337,6 +375,61 @@ class Crimson : JavaPlugin() {
                 }
             }
         )
+
+
+        val witherHelmet = ItemRegistry.createArmor(
+            WITHER_HELMET, "crimson:wither", Material.NETHERITE_HELMET,
+            translatable(translationString(WITHER_HELMET), "Wither Helmet", NamedTextColor.DARK_RED),
+            EquipmentSlot.HEAD
+        )
+        witherHelmet.editMeta {
+            it.lore(listOf(
+                text("Set bonus: 60% chance to inflict", style(TextColor.color(0xcf0000), TextDecoration.ITALIC.withState(false))),
+                text("Wither on the attacker", style(TextColor.color(0xcf0000), TextDecoration.ITALIC.withState(false)))
+            ))
+        }
+        itemRegistry.registerItem(WITHER_HELMET, witherHelmet)
+
+        val witherChestplate = ItemRegistry.createArmor(
+            WITHER_CHESTPLATE, "crimson:wither", Material.NETHERITE_CHESTPLATE,
+            translatable(translationString(WITHER_CHESTPLATE), "Wither Chestplate", NamedTextColor.DARK_RED),
+            EquipmentSlot.CHEST
+        )
+        witherChestplate.editMeta {
+            it.lore(listOf(
+                text("Set bonus: 60% chance to inflict", style(TextColor.color(0xcf0000), TextDecoration.ITALIC.withState(false))),
+                text("Wither on the attacker", style(TextColor.color(0xcf0000), TextDecoration.ITALIC.withState(false)))
+            ))
+        }
+        itemRegistry.registerItem(WITHER_CHESTPLATE, witherChestplate)
+
+        val witherLeggings = ItemRegistry.createArmor(
+            WITHER_LEGGINGS, "crimson:wither", Material.NETHERITE_LEGGINGS,
+            translatable(translationString(WITHER_LEGGINGS), "Wither Leggings", NamedTextColor.DARK_RED),
+            EquipmentSlot.LEGS
+        )
+        witherLeggings.editMeta {
+            it.lore(listOf(
+                text("Set bonus: 60% chance to inflict", style(TextColor.color(0xcf0000), TextDecoration.ITALIC.withState(false))),
+                text("Wither on the attacker", style(TextColor.color(0xcf0000), TextDecoration.ITALIC.withState(false)))
+            ))
+        }
+        itemRegistry.registerItem(WITHER_LEGGINGS, witherLeggings)
+
+        val witherBoots = ItemRegistry.createArmor(
+            WITHER_BOOTS, "crimson:wither", Material.NETHERITE_BOOTS,
+            translatable(translationString(WITHER_BOOTS), "Wither Boots", NamedTextColor.DARK_RED),
+            EquipmentSlot.FEET
+        )
+        witherBoots.editMeta {
+            it.lore(listOf(
+                text("Set bonus: 60% chance to inflict", style(TextColor.color(0xcf0000), TextDecoration.ITALIC.withState(false))),
+                text("Wither on the attacker", style(TextColor.color(0xcf0000), TextDecoration.ITALIC.withState(false)))
+            ))
+        }
+        itemRegistry.registerItem(WITHER_BOOTS, witherBoots)
+
+
 
         /*itemRegistry.registerItemEffect(object : ArmorSetEffect(ATLANTIS_BOOTS, ATLANTIS_LEGGINGS, ATLANTIS_CHESTPLATE, ATLANTIS_HELMET, 20) {
             override fun applyEffect(player: Player) {
@@ -648,6 +741,104 @@ class Crimson : JavaPlugin() {
         recipesToUnlock.add(ENDER_CHESTPLATE)
         recipesToUnlock.add(ENDER_LEGGINGS)
         recipesToUnlock.add(ENDER_BOOTS)
+
+
+        recipeRegistry.registerRecipe(SmithingTransformRecipe(
+            fromString(WITHER_HELMET)!!,
+            itemRegistry.getItemStack(WITHER_HELMET)!!,
+            RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_HELMET)!!),
+            RecipeChoice.MaterialChoice(Material.NETHERITE_HELMET),
+            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+        ))
+
+        recipeRegistry.registerRecipe(SmithingTransformRecipe(
+            fromString(WITHER_CHESTPLATE)!!,
+            itemRegistry.getItemStack(WITHER_CHESTPLATE)!!,
+            RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_CHESTPLATE)!!),
+            RecipeChoice.MaterialChoice(Material.NETHERITE_CHESTPLATE),
+            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+        ))
+
+        recipeRegistry.registerRecipe(SmithingTransformRecipe(
+            fromString(WITHER_LEGGINGS)!!,
+            itemRegistry.getItemStack(WITHER_LEGGINGS)!!,
+            RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_LEGGINGS)!!),
+            RecipeChoice.MaterialChoice(Material.NETHERITE_LEGGINGS),
+            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+        ))
+
+        recipeRegistry.registerRecipe(SmithingTransformRecipe(
+            fromString(WITHER_BOOTS)!!,
+            itemRegistry.getItemStack(WITHER_BOOTS)!!,
+            RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_BOOTS)!!),
+            RecipeChoice.MaterialChoice(Material.NETHERITE_BOOTS),
+            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+        ))
+
+
+        val crackedWitherHelmet = ShapedRecipe(
+            fromString(CRACKED_WITHER_HELMET)!!,
+            itemRegistry.getItemStack(CRACKED_WITHER_HELMET)!!
+        )
+        crackedWitherHelmet.shape(
+            "RNR",
+            "MSM",
+            "RNR"
+        )
+        crackedWitherHelmet.setIngredient('R', Material.WITHER_ROSE)
+        crackedWitherHelmet.setIngredient('N', Material.NETHERITE_SCRAP)
+        crackedWitherHelmet.setIngredient('M', Material.MAGMA_BLOCK)
+        crackedWitherHelmet.setIngredient('S', Material.WITHER_SKELETON_SKULL)
+        recipeRegistry.registerRecipe(crackedWitherHelmet)
+
+        val crackedWitherChestplate = ShapedRecipe(
+            fromString(CRACKED_WITHER_CHESTPLATE)!!,
+            itemRegistry.getItemStack(CRACKED_WITHER_CHESTPLATE)!!
+        )
+        crackedWitherChestplate.shape(
+            "R R",
+            "NSN",
+            "MRM"
+        )
+        crackedWitherChestplate.setIngredient('R', Material.WITHER_ROSE)
+        crackedWitherChestplate.setIngredient('N', Material.NETHERITE_SCRAP)
+        crackedWitherChestplate.setIngredient('M', Material.MAGMA_BLOCK)
+        crackedWitherChestplate.setIngredient('S', Material.NETHER_STAR)
+        recipeRegistry.registerRecipe(crackedWitherChestplate)
+
+        val crackedWitherLeggings = ShapedRecipe(
+            fromString(CRACKED_WITHER_LEGGINGS)!!,
+            itemRegistry.getItemStack(CRACKED_WITHER_LEGGINGS)!!
+        )
+        crackedWitherLeggings.shape(
+            "MRM",
+            "N N",
+            "R R"
+        )
+        crackedWitherLeggings.setIngredient('R', Material.WITHER_ROSE)
+        crackedWitherLeggings.setIngredient('N', Material.NETHERITE_SCRAP)
+        crackedWitherLeggings.setIngredient('M', Material.MAGMA_BLOCK)
+        recipeRegistry.registerRecipe(crackedWitherLeggings)
+
+        val crackedWitherBoots = ShapedRecipe(
+            fromString(CRACKED_WITHER_BOOTS)!!,
+            itemRegistry.getItemStack(CRACKED_WITHER_BOOTS)!!
+        )
+        crackedWitherBoots.shape(
+            "R R",
+            "M M",
+            "R R"
+        )
+        crackedWitherBoots.setIngredient('R', Material.WITHER_ROSE)
+        crackedWitherBoots.setIngredient('M', Material.MAGMA_BLOCK)
+        recipeRegistry.registerRecipe(crackedWitherBoots)
+
+
+        recipesToUnlock.add(CRACKED_WITHER_HELMET)
+        recipesToUnlock.add(CRACKED_WITHER_CHESTPLATE)
+        recipesToUnlock.add(CRACKED_WITHER_LEGGINGS)
+        recipesToUnlock.add(CRACKED_WITHER_BOOTS)
+
     }
 
     private fun registerCustomDrops(itemRegistry: ItemRegistry) {
@@ -659,6 +850,22 @@ class Crimson : JavaPlugin() {
                     val causingEntity = it.damageSource.causingEntity
 
                     !(directEntity !is Player && (causingEntity !is Player || directEntity !is Projectile))
+                }
+                .build()
+        )
+
+        val witherAspectBook = ItemStack(Material.ENCHANTED_BOOK)
+        val witherAspectBookMeta = witherAspectBook.itemMeta as EnchantmentStorageMeta
+        witherAspectBookMeta.addStoredEnchant(RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
+            .get(fromString("crimson:wither_aspect")!!)!!, 1, false)
+        witherAspectBook.itemMeta = witherAspectBookMeta
+
+
+        itemRegistry.registerCustomDrops(
+            CustomDrops.Builder(EntityType.WITHER, itemRegistry)
+                .drop(witherAspectBook, 0.1, 1..1)
+                .dropPredicate {
+                    it.entity.scoreboardTags.contains("DropsWitherAspect")
                 }
                 .build()
         )
@@ -869,5 +1076,14 @@ class Crimson : JavaPlugin() {
         const val DWARF_LEGGINGS = "crimson:dwarf_leggings"
         const val DWARF_BOOTS = "crimson:dwarf_boots"
 
+        const val WITHER_HELMET = "crimson:wither_helmet"
+        const val WITHER_CHESTPLATE = "crimson:wither_chestplate"
+        const val WITHER_LEGGINGS = "crimson:wither_leggings"
+        const val WITHER_BOOTS = "crimson:wither_boots"
+
+        const val CRACKED_WITHER_HELMET = "crimson:cracked_wither_helmet"
+        const val CRACKED_WITHER_CHESTPLATE = "crimson:cracked_wither_chestplate"
+        const val CRACKED_WITHER_LEGGINGS = "crimson:cracked_wither_leggings"
+        const val CRACKED_WITHER_BOOTS = "crimson:cracked_wither_boots"
     }
 }
