@@ -553,7 +553,7 @@ class Crimson : JavaPlugin() {
             fromString(ECHO_HELMET)!!,
             itemRegistry.getItemStack(ECHO_HELMET)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_HELMET),
+            RecipeChoice.itemType(ItemType.NETHERITE_HELMET),
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_INGOT)!!)
         ))
 
@@ -561,7 +561,7 @@ class Crimson : JavaPlugin() {
             fromString(ECHO_CHESTPLATE)!!,
             itemRegistry.getItemStack(ECHO_CHESTPLATE)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_CHESTPLATE),
+            RecipeChoice.itemType(ItemType.NETHERITE_CHESTPLATE),
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_INGOT)!!)
         ))
 
@@ -569,7 +569,7 @@ class Crimson : JavaPlugin() {
             fromString(ECHO_LEGGINGS)!!,
             itemRegistry.getItemStack(ECHO_LEGGINGS)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_LEGGINGS),
+            RecipeChoice.itemType(ItemType.NETHERITE_LEGGINGS),
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_INGOT)!!)
         ))
 
@@ -577,7 +577,7 @@ class Crimson : JavaPlugin() {
             fromString(ECHO_BOOTS)!!,
             itemRegistry.getItemStack(ECHO_BOOTS)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_BOOTS),
+            RecipeChoice.itemType(ItemType.NETHERITE_BOOTS),
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_INGOT)!!)
         ))
 
@@ -747,32 +747,32 @@ class Crimson : JavaPlugin() {
             fromString(WITHER_HELMET)!!,
             itemRegistry.getItemStack(WITHER_HELMET)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_HELMET)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_HELMET),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+            RecipeChoice.itemType(ItemType.NETHERITE_HELMET),
+            RecipeChoice.itemType(ItemType.NETHERITE_INGOT)
         ))
 
         recipeRegistry.registerRecipe(SmithingTransformRecipe(
             fromString(WITHER_CHESTPLATE)!!,
             itemRegistry.getItemStack(WITHER_CHESTPLATE)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_CHESTPLATE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_CHESTPLATE),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+            RecipeChoice.itemType(ItemType.NETHERITE_CHESTPLATE),
+            RecipeChoice.itemType(ItemType.NETHERITE_INGOT)
         ))
 
         recipeRegistry.registerRecipe(SmithingTransformRecipe(
             fromString(WITHER_LEGGINGS)!!,
             itemRegistry.getItemStack(WITHER_LEGGINGS)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_LEGGINGS)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_LEGGINGS),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+            RecipeChoice.itemType(ItemType.NETHERITE_LEGGINGS),
+            RecipeChoice.itemType(ItemType.NETHERITE_INGOT)
         ))
 
         recipeRegistry.registerRecipe(SmithingTransformRecipe(
             fromString(WITHER_BOOTS)!!,
             itemRegistry.getItemStack(WITHER_BOOTS)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_BOOTS)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_BOOTS),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+            RecipeChoice.itemType(ItemType.NETHERITE_BOOTS),
+            RecipeChoice.itemType(ItemType.NETHERITE_INGOT)
         ))
 
 
