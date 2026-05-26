@@ -18,3 +18,7 @@ dependencies:
       load: BEFORE
       required: true
       join-classpath: true
+    PvPManager:
+      load: BEFORE
+      required: true
+      join-classpath: true

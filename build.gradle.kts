@@ -19,9 +19,6 @@ repositories {
     maven("https://repo.codemc.io/repository/maven-public/") {
         name = "CodeMC"
     }
-    flatDir {
-        dirs("libs")
-    }
 }
 
 dependencies {
@@ -32,7 +29,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude(group = "org.bukkit", module = "bukkit")
     }
-    compileOnly("com.lenis0012.bukkit:loginsecurity:3.3.1")
+    compileOnly("me.chancesd.pvpmanager:pvpmanager:4.0.9")
 }
 
 tasks {

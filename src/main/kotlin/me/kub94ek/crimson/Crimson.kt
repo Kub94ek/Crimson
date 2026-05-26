@@ -6,28 +6,34 @@ import io.papermc.paper.command.brigadier.Commands
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
-import io.papermc.paper.registry.RegistryAccess
-import io.papermc.paper.registry.RegistryKey
-import me.kub94ek.crimson.command.crimson.*
-import me.kub94ek.crimson.listeners.*
+import me.chancesd.pvpmanager.PvPManager
+import me.kub94ek.crimson.command.crimson.CrimsonBanhammerCommand
+import me.kub94ek.crimson.command.crimson.CrimsonGiveCommand
+import me.kub94ek.crimson.command.crimson.CrimsonMenuCommand
+import me.kub94ek.crimson.listeners.BanHammerListener
+import me.kub94ek.crimson.listeners.EnderArmorListener
+import me.kub94ek.crimson.listeners.PvpListener
+import me.kub94ek.crimson.listeners.RecipeListener
+import me.kub94ek.crimson.listeners.WitherArmorListener
 import me.kub94ek.kubLib.KubLib
 import me.kub94ek.kubLib.cooldown.CooldownCommand
 import me.kub94ek.kubLib.items.CustomDrops
 import me.kub94ek.kubLib.items.ItemRegistry
 import me.kub94ek.kubLib.items.effects.ArmorSetEffect
-import net.kyori.adventure.text.Component.*
+import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.Component.translatable
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style.style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.milkbowl.vault.economy.Economy
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey.fromString
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
 import org.bukkit.inventory.*
-import org.bukkit.inventory.meta.EnchantmentStorageMeta
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
@@ -36,6 +42,8 @@ import java.io.File
 class Crimson : JavaPlugin() {
 
     var economy: Economy? = null
+    var pvpManager: PvPManager? = null
+
     val recipesToUnlock = mutableListOf<String>()
 
     override fun onLoad() {
@@ -59,6 +67,11 @@ class Crimson : JavaPlugin() {
 
         if (!setupEconomy()) {
             logger.severe("[Crimson] - Disabled due to no Vault dependency found!")
+            server.pluginManager.disablePlugin(this)
+            return
+        }
+        if (!setupPvpManager()) {
+            logger.severe("[Crimson] - Disabled due to no PvPManager found!")
             server.pluginManager.disablePlugin(this)
             return
         }
@@ -87,6 +100,11 @@ class Crimson : JavaPlugin() {
         return true
     }
 
+    private fun setupPvpManager(): Boolean {
+        pvpManager = Bukkit.getPluginManager().getPlugin("PvPManager") as PvPManager?
+        return pvpManager != null
+    }
+
     override fun onDisable() {
         logger.info("Shutting down...")
     }
@@ -96,6 +114,8 @@ class Crimson : JavaPlugin() {
         pluginManager.registerEvents(BanHammerListener(kubLib.itemRegistry), this)
         pluginManager.registerEvents(EnderArmorListener(), this)
         pluginManager.registerEvents(WitherArmorListener(), this)
+        pluginManager.registerEvents(RecipeListener(), this)
+        pluginManager.registerEvents(PvpListener(), this)
     }
 
     private fun registerItems(kubLib: KubLib) {
@@ -763,7 +783,7 @@ class Crimson : JavaPlugin() {
                 .build()
         )
 
-        val witherAspectBook = ItemStack(Material.ENCHANTED_BOOK)
+        /*val witherAspectBook = ItemStack(Material.ENCHANTED_BOOK)
         val witherAspectBookMeta = witherAspectBook.itemMeta as EnchantmentStorageMeta
         witherAspectBookMeta.addStoredEnchant(RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
             .get(fromString("crimson:wither_aspect")!!)!!, 1, false)
@@ -777,7 +797,7 @@ class Crimson : JavaPlugin() {
                     it.entity.scoreboardTags.contains("DropsWitherAspect")
                 }
                 .build()
-        )
+        )*/
     }
 
     private fun registerMenus(kubLib: KubLib) {
@@ -826,6 +846,23 @@ class Crimson : JavaPlugin() {
                     .build()
             )
 
+            registrar.register(
+                Commands.literal("brand")
+                    .requires { it.sender.hasPermission("brand") }
+                    .then(
+                        Commands.argument("player", ArgumentTypes.player())
+                            .executes { ctx ->
+                                val player = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
+                                    .resolve(ctx.source).first()
+
+                                ctx.source.sender.sendMessage(
+                                    "${player.name} has the following client brand name: ${player.clientBrandName}"
+                                )
+                                1
+                            }
+                    )
+                    .build()
+            )
         }
     }
 
