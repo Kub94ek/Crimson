@@ -29,7 +29,6 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude(group = "org.bukkit", module = "bukkit")
     }
-    compileOnly("me.chancesd.pvpmanager:pvpmanager:4.0.9")
 }
 
 tasks {

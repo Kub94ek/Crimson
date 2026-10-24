@@ -6,13 +6,11 @@ import io.papermc.paper.command.brigadier.Commands
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
-import me.chancesd.pvpmanager.PvPManager
 import me.kub94ek.crimson.command.crimson.CrimsonBanhammerCommand
 import me.kub94ek.crimson.command.crimson.CrimsonGiveCommand
 import me.kub94ek.crimson.command.crimson.CrimsonMenuCommand
 import me.kub94ek.crimson.listeners.BanHammerListener
 import me.kub94ek.crimson.listeners.EnderArmorListener
-import me.kub94ek.crimson.listeners.PvpListener
 import me.kub94ek.crimson.listeners.RecipeListener
 import me.kub94ek.crimson.listeners.WitherArmorListener
 import me.kub94ek.kubLib.KubLib
@@ -27,7 +25,6 @@ import net.kyori.adventure.text.format.Style.style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.milkbowl.vault.economy.Economy
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey.fromString
 import org.bukkit.entity.EntityType
@@ -42,7 +39,6 @@ import java.io.File
 class Crimson : JavaPlugin() {
 
     var economy: Economy? = null
-    var pvpManager: PvPManager? = null
 
     val recipesToUnlock = mutableListOf<String>()
 
@@ -67,11 +63,6 @@ class Crimson : JavaPlugin() {
 
         if (!setupEconomy()) {
             logger.severe("[Crimson] - Disabled due to no Vault dependency found!")
-            server.pluginManager.disablePlugin(this)
-            return
-        }
-        if (!setupPvpManager()) {
-            logger.severe("[Crimson] - Disabled due to no PvPManager found!")
             server.pluginManager.disablePlugin(this)
             return
         }
@@ -100,11 +91,6 @@ class Crimson : JavaPlugin() {
         return true
     }
 
-    private fun setupPvpManager(): Boolean {
-        pvpManager = Bukkit.getPluginManager().getPlugin("PvPManager") as PvPManager?
-        return pvpManager != null
-    }
-
     override fun onDisable() {
         logger.info("Shutting down...")
     }
@@ -115,7 +101,6 @@ class Crimson : JavaPlugin() {
         pluginManager.registerEvents(EnderArmorListener(), this)
         pluginManager.registerEvents(WitherArmorListener(), this)
         pluginManager.registerEvents(RecipeListener(), this)
-        pluginManager.registerEvents(PvpListener(), this)
     }
 
     private fun registerItems(kubLib: KubLib) {
