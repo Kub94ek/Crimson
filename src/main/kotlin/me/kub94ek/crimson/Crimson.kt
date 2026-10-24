@@ -6,55 +6,40 @@ import io.papermc.paper.command.brigadier.Commands
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
-import io.papermc.paper.registry.RegistryAccess
-import io.papermc.paper.registry.RegistryKey
-import me.kub94ek.crimson.command.crimson.*
-import me.kub94ek.crimson.command.race.*
-import me.kub94ek.crimson.listeners.*
-import me.kub94ek.crimson.races.Race
-import me.kub94ek.crimson.races.getRaceLevel
-import me.kub94ek.crimson.races.getRaceType
-import me.kub94ek.crimson.races.setRaceType
+import me.kub94ek.crimson.command.crimson.CrimsonBanhammerCommand
+import me.kub94ek.crimson.command.crimson.CrimsonGiveCommand
+import me.kub94ek.crimson.command.crimson.CrimsonMenuCommand
+import me.kub94ek.crimson.listeners.BanHammerListener
+import me.kub94ek.crimson.listeners.EnderArmorListener
+import me.kub94ek.crimson.listeners.RecipeListener
+import me.kub94ek.crimson.listeners.WitherArmorListener
 import me.kub94ek.kubLib.KubLib
 import me.kub94ek.kubLib.cooldown.CooldownCommand
-import me.kub94ek.kubLib.gui.ChestMenu
-import me.kub94ek.kubLib.gui.MenuItem
 import me.kub94ek.kubLib.items.CustomDrops
 import me.kub94ek.kubLib.items.ItemRegistry
 import me.kub94ek.kubLib.items.effects.ArmorSetEffect
-import net.kyori.adventure.text.Component.*
+import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.Component.translatable
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style.style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.milkbowl.vault.economy.Economy
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey.fromString
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
 import org.bukkit.inventory.*
-import org.bukkit.inventory.meta.EnchantmentStorageMeta
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import java.io.File
-import java.util.UUID
 
 class Crimson : JavaPlugin() {
 
-    private val selectedRaces = mutableMapOf<UUID, String>()
-    private val RACE_MATERIALS = mapOf(
-        "human" to Material.PLAYER_HEAD,
-        "golem" to Material.IRON_BLOCK,
-        "dwarf" to Material.IRON_PICKAXE,
-        "drowned" to Material.NAUTILUS_SHELL,
-        "demon" to Material.MAGMA_BLOCK,
-        "ender" to Material.ENDER_PEARL
-    )
-
     var economy: Economy? = null
+
     val recipesToUnlock = mutableListOf<String>()
 
     override fun onLoad() {
@@ -113,10 +98,9 @@ class Crimson : JavaPlugin() {
     private fun registerListeners(kubLib: KubLib) {
         val pluginManager = server.pluginManager
         pluginManager.registerEvents(BanHammerListener(kubLib.itemRegistry), this)
-        pluginManager.registerEvents(RaceListener(kubLib), this)
         pluginManager.registerEvents(EnderArmorListener(), this)
-        pluginManager.registerEvents(NetherEventListener(), this)
         pluginManager.registerEvents(WitherArmorListener(), this)
+        pluginManager.registerEvents(RecipeListener(), this)
     }
 
     private fun registerItems(kubLib: KubLib) {
@@ -192,7 +176,6 @@ class Crimson : JavaPlugin() {
         itemRegistry.registerItem(CRACKED_WITHER_BOOTS, crackedWitherBoots)
 
         registerArmor(kubLib)
-        registerRaceItems(kubLib)
     }
 
     private fun registerArmor(kubLib: KubLib) {
@@ -445,75 +428,6 @@ class Crimson : JavaPlugin() {
 
     }
 
-    private fun registerRaceItems(kubLib: KubLib) {
-        val itemRegistry = kubLib.itemRegistry
-
-        itemRegistry.registerItem("crimson:race_selector_human", Material.PLAYER_HEAD,
-            Race.HUMAN.displayName,
-            listOf(
-                text("Spawns in a forest", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
-                text(""),
-                text("No buffs, no debuffs", style(NamedTextColor.GRAY, TextDecoration.ITALIC.withState(false)))
-            ), null
-        )
-        itemRegistry.registerItem("crimson:race_selector_golem", Material.IRON_BLOCK,
-            Race.GOLEM.displayName,
-            listOf(
-                text("Spawns in a village", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
-                text(""),
-                text("+5/10/15 ❤", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Hero of the Village I", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Strength I/II/II", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Slowness I/II/II", style(NamedTextColor.RED, TextDecoration.ITALIC.withState(false))),
-                text("3 blocks tall", style(NamedTextColor.RED, TextDecoration.ITALIC.withState(false)))
-            ), null
-        )
-        itemRegistry.registerItem("crimson:race_selector_dwarf", Material.IRON_PICKAXE,
-            Race.DWARF.displayName,
-            listOf(
-                text("Spawns in a mountain cave", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
-                text(""),
-                text("1.35 blocks tall", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Faster mining (scales with levels)", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("-1 ❤", style(NamedTextColor.RED, TextDecoration.ITALIC.withState(false)))
-            ), null
-        )
-        itemRegistry.registerItem("crimson:race_selector_drowned", Material.NAUTILUS_SHELL,
-            Race.DROWNED.displayName,
-            listOf(
-                text("Spawns on the beach", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
-                text(""),
-                text("Water Breathing", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Faster underwater mining", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Faster hunger drain when moving on land", style(NamedTextColor.RED, TextDecoration.ITALIC.withState(false)))
-            ), null
-        )
-        itemRegistry.registerItem("crimson:race_selector_demon", Material.MAGMA_BLOCK,
-            Race.DEMON.displayName,
-            listOf(
-                text("Spawns next to a ruined portal", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
-                text(""),
-                text("+0/1/2 ❤", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Cannot stay on fire outside of fire and lava", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Swims slower", style(NamedTextColor.RED, TextDecoration.ITALIC.withState(false))),
-                text("Drowns instantly when out of air", style(NamedTextColor.RED, TextDecoration.ITALIC.withState(false)))
-            ), null
-        )
-        itemRegistry.registerItem("crimson:race_selector_ender", Material.ENDER_PEARL,
-            Race.ENDER.displayName,
-            listOf(
-                text("Spawns in a pale garden", style(NamedTextColor.YELLOW, TextDecoration.ITALIC.withState(false))),
-                text(""),
-                text("+0/1/2 ❤", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Chorus fruit gives more hunger and saturation", style(NamedTextColor.GREEN, TextDecoration.ITALIC.withState(false))),
-                text("Drowns instantly when out of air", style(NamedTextColor.RED, TextDecoration.ITALIC.withState(false))),
-                text("2.5 blocks tall", style(NamedTextColor.RED, TextDecoration.ITALIC.withState(false)))
-
-            ), null
-        )
-
-    }
-
     private fun registerRecipes(kubLib: KubLib) {
         val itemRegistry = kubLib.itemRegistry
         val recipeRegistry = kubLib.recipeRegistry
@@ -553,7 +467,7 @@ class Crimson : JavaPlugin() {
             fromString(ECHO_HELMET)!!,
             itemRegistry.getItemStack(ECHO_HELMET)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_HELMET),
+            RecipeChoice.itemType(ItemType.NETHERITE_HELMET),
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_INGOT)!!)
         ))
 
@@ -561,7 +475,7 @@ class Crimson : JavaPlugin() {
             fromString(ECHO_CHESTPLATE)!!,
             itemRegistry.getItemStack(ECHO_CHESTPLATE)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_CHESTPLATE),
+            RecipeChoice.itemType(ItemType.NETHERITE_CHESTPLATE),
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_INGOT)!!)
         ))
 
@@ -569,7 +483,7 @@ class Crimson : JavaPlugin() {
             fromString(ECHO_LEGGINGS)!!,
             itemRegistry.getItemStack(ECHO_LEGGINGS)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_LEGGINGS),
+            RecipeChoice.itemType(ItemType.NETHERITE_LEGGINGS),
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_INGOT)!!)
         ))
 
@@ -577,7 +491,7 @@ class Crimson : JavaPlugin() {
             fromString(ECHO_BOOTS)!!,
             itemRegistry.getItemStack(ECHO_BOOTS)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_UPGRADE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_BOOTS),
+            RecipeChoice.itemType(ItemType.NETHERITE_BOOTS),
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(ECHO_INGOT)!!)
         ))
 
@@ -747,32 +661,32 @@ class Crimson : JavaPlugin() {
             fromString(WITHER_HELMET)!!,
             itemRegistry.getItemStack(WITHER_HELMET)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_HELMET)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_HELMET),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+            RecipeChoice.itemType(ItemType.NETHERITE_HELMET),
+            RecipeChoice.itemType(ItemType.NETHERITE_INGOT)
         ))
 
         recipeRegistry.registerRecipe(SmithingTransformRecipe(
             fromString(WITHER_CHESTPLATE)!!,
             itemRegistry.getItemStack(WITHER_CHESTPLATE)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_CHESTPLATE)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_CHESTPLATE),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+            RecipeChoice.itemType(ItemType.NETHERITE_CHESTPLATE),
+            RecipeChoice.itemType(ItemType.NETHERITE_INGOT)
         ))
 
         recipeRegistry.registerRecipe(SmithingTransformRecipe(
             fromString(WITHER_LEGGINGS)!!,
             itemRegistry.getItemStack(WITHER_LEGGINGS)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_LEGGINGS)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_LEGGINGS),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+            RecipeChoice.itemType(ItemType.NETHERITE_LEGGINGS),
+            RecipeChoice.itemType(ItemType.NETHERITE_INGOT)
         ))
 
         recipeRegistry.registerRecipe(SmithingTransformRecipe(
             fromString(WITHER_BOOTS)!!,
             itemRegistry.getItemStack(WITHER_BOOTS)!!,
             RecipeChoice.ExactChoice(itemRegistry.getItemStack(CRACKED_WITHER_BOOTS)!!),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_BOOTS),
-            RecipeChoice.MaterialChoice(Material.NETHERITE_INGOT)
+            RecipeChoice.itemType(ItemType.NETHERITE_BOOTS),
+            RecipeChoice.itemType(ItemType.NETHERITE_INGOT)
         ))
 
 
@@ -854,7 +768,7 @@ class Crimson : JavaPlugin() {
                 .build()
         )
 
-        val witherAspectBook = ItemStack(Material.ENCHANTED_BOOK)
+        /*val witherAspectBook = ItemStack(Material.ENCHANTED_BOOK)
         val witherAspectBookMeta = witherAspectBook.itemMeta as EnchantmentStorageMeta
         witherAspectBookMeta.addStoredEnchant(RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
             .get(fromString("crimson:wither_aspect")!!)!!, 1, false)
@@ -868,97 +782,10 @@ class Crimson : JavaPlugin() {
                     it.entity.scoreboardTags.contains("DropsWitherAspect")
                 }
                 .build()
-        )
+        )*/
     }
 
     private fun registerMenus(kubLib: KubLib) {
-        val itemRegistry = kubLib.itemRegistry
-        val menuRegistry = kubLib.menuRegistry
-
-        val raceSelectMenu = ChestMenu(
-            translatable("menu.crimson.race_select.title", "Select a race", NamedTextColor.GOLD),
-            "crimson:race_select_menu",
-            "         ", " 123456  ", "         "
-        )
-        raceSelectMenu.setKey('1', raceSelectorMenuItem("human"))
-        raceSelectMenu.setKey('2', raceSelectorMenuItem("golem"))
-        raceSelectMenu.setKey('3', raceSelectorMenuItem("dwarf"))
-        raceSelectMenu.setKey('4', raceSelectorMenuItem("drowned"))
-        raceSelectMenu.setKey('5', raceSelectorMenuItem("demon"))
-        raceSelectMenu.setKey('6', raceSelectorMenuItem("ender"))
-
-        menuRegistry.registerMenu(raceSelectMenu)
-
-        
-
-        val raceConfirmMenu = ChestMenu(
-            translatable("menu.crimson.race_confirm.title", "Confirm your selection", NamedTextColor.GOLD),
-            "crimson:race_confirm_menu",
-            "         ",
-            "         ",
-            "    r    ",
-            "   y n   ",
-            "         ",
-            "         "
-        )
-
-        raceConfirmMenu.prepareKey('r', MenuItem(ItemStack.empty()) {}) {
-            itemRegistry.getItemStack("crimson:race_selector_${selectedRaces[it.uniqueId]}")!!
-        }
-
-        raceConfirmMenu.setKey('y', MenuItem(ItemRegistry.createItem(
-            Material.LIME_CONCRETE, translatable("menu.crimson.confirm", "Confirm", NamedTextColor.GREEN, TextDecoration.BOLD),
-            listOf(translatable("menu.crimson.race_confirm.confirm.desc", "This action is permanent!", NamedTextColor.DARK_RED))
-        )) {
-            val player = it.event.whoClicked as Player
-            val race = Race.valueOf(selectedRaces[player.uniqueId]!!.uppercase())
-            setRaceType(player, race)
-            player.sendMessage(
-                translatable("message.race.select", "You have selected the %s race!", NamedTextColor.YELLOW, TextDecoration.BOLD)
-                    .arguments(race.displayName.style(style(NamedTextColor.WHITE, TextDecoration.UNDERLINED, TextDecoration.BOLD)))
-            )
-            selectingPlayers.remove(player.uniqueId)
-            player.isInvulnerable = false
-
-            Bukkit.getScheduler().runTask(this, Runnable {
-                player.closeInventory()
-                player.teleport(race.spawnPos.get())
-            })
-        })
-
-        raceConfirmMenu.setKey('n', MenuItem(ItemRegistry.createItem(
-            Material.RED_CONCRETE, translatable("menu.crimson.cancel", "Cancel", NamedTextColor.DARK_RED, TextDecoration.BOLD)
-        )) {
-            selectedRaces.remove(it.event.whoClicked.uniqueId)
-            Bukkit.getScheduler().runTask(this, Runnable {
-                it.event.whoClicked.closeInventory()
-                menuRegistry.openMenu("crimson:race_select_menu", it.event.whoClicked as Player)
-            })
-        })
-
-        menuRegistry.registerMenu(raceConfirmMenu)
-
-
-
-        val raceViewMenu = ChestMenu(
-            translatable("menu.crimson.view_race.title", "View your race:", NamedTextColor.YELLOW),
-            "crimson:view_race",
-            "         ", "         ", "    i    ", "         ", "         "
-        )
-        raceViewMenu.prepareKey('i', MenuItem(ItemStack(Material.BARRIER)) {}) {
-            val race = getRaceType(it)!!
-            val level = getRaceLevel(it)
-            val item = ItemStack(RACE_MATERIALS[race.name.lowercase()]!!)
-            item.editMeta {
-                it.displayName(race.displayName.append(text(" (Level $level)")))
-                it.lore(race.abilityLores[level])
-            }
-
-            return@prepareKey item
-        }
-
-        menuRegistry.registerMenu(raceViewMenu)
-
     }
 
     private fun registerCommands() {
@@ -986,16 +813,6 @@ class Crimson : JavaPlugin() {
             )
 
             registrar.register(
-                Commands.literal("race")
-                    .then(RaceTypeCommand().create())
-                    .then(RaceLevelCommand().create())
-                    .then(RaceXpCommand().create())
-                    .then(RaceViewCommand().create())
-                    .then(RaceChangeCommand().create())
-                    .build()
-            )
-
-            registrar.register(
                 Commands.literal("demo")
                     .requires { it.sender.hasPermission("demo") }
                     .then(
@@ -1014,21 +831,23 @@ class Crimson : JavaPlugin() {
                     .build()
             )
 
-        }
-    }
+            registrar.register(
+                Commands.literal("brand")
+                    .requires { it.sender.hasPermission("brand") }
+                    .then(
+                        Commands.argument("player", ArgumentTypes.player())
+                            .executes { ctx ->
+                                val player = ctx.getArgument("player", PlayerSelectorArgumentResolver::class.java)
+                                    .resolve(ctx.source).first()
 
-
-    private fun raceSelectorMenuItem(race: String): MenuItem {
-        val kubLib = KubLib.getInstance()
-
-        return MenuItem(
-            kubLib.itemRegistry.getItemStack("crimson:race_selector_$race")!!
-        ) {
-            selectedRaces[it.event.whoClicked.uniqueId] = race
-            Bukkit.getScheduler().runTask(this, Runnable {
-                it.event.whoClicked.closeInventory()
-                kubLib.menuRegistry.openMenu("crimson:race_confirm_menu", it.event.whoClicked as Player)
-            })
+                                ctx.source.sender.sendMessage(
+                                    "${player.name} has the following client brand name: ${player.clientBrandName}"
+                                )
+                                1
+                            }
+                    )
+                    .build()
+            )
         }
     }
 

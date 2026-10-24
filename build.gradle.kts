@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "me.kub94ek"
-version = "1.0-SNAPSHOT"
+version = "1.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -19,18 +19,16 @@ repositories {
     maven("https://repo.codemc.io/repository/maven-public/") {
         name = "CodeMC"
     }
-    flatDir {
-        dirs("libs")
-    }
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    compileOnly("me.kub94ek:kub-lib:2.1")
-    compileOnly("de.tr7zw:item-nbt-api-plugin:2.15.3")
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
-    compileOnly("com.lenis0012.bukkit:loginsecurity:3.3.1")
+    compileOnly("me.kub94ek:kub-lib:2.2")
+    compileOnly("de.tr7zw:item-nbt-api-plugin:2.15.7")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
+        exclude(group = "org.bukkit", module = "bukkit")
+    }
 }
 
 tasks {
@@ -38,7 +36,7 @@ tasks {
         // Configure the Minecraft version for our task.
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
-        minecraftVersion("1.21.10")
+        minecraftVersion("1.21.11")
     }
 }
 
